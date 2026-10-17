@@ -14875,7 +14875,7 @@ genv.__SenaV4Webhook = (function()
 		end
 
 		local v16 = fn63()
-		local tbl18 = {title = "Egg Stolen", description = string.format("You've stolen a **%s** %s", tostring(tbl16.rarity), tostring(tbl16.name)), color = fn65(tbl16.rarityColor), timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ"), author = {name = "leon4951", icon_url = v16}, footer = {text = "leon4951", icon_url = v16}, fields = tbl17}
+		local tbl18 = {title = "Egg Stolen", description = string.format("You've stolen a **%s** %s", tostring(tbl16.rarity), tostring(tbl16.name)), color = fn65(tbl16.rarityColor), timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ"), author = {name = "Sena Hub", icon_url = v16}, footer = {text = "discord.gg/senahub", icon_url = v16}, fields = tbl17}
 
 		if #tbl13 > 40 then
 			table.remove(tbl13, 1)
@@ -14906,7 +14906,7 @@ genv.__SenaV4Webhook = (function()
 		end
 
 		local v15 = fn63()
-		local tbl16 = {title = "Webhook Test", description = string.format("Connection test for **%s**", localPlayer2.Name), color = 5814783, timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ"), author = {name = "leon4951", icon_url = v15}, footer = {text = "leon4951", icon_url = v15}, fields = {{name = "User", value = localPlayer2.Name, inline = true}, {name = "User ID", value = tostring(localPlayer2.UserId), inline = true}, {name = "Place ID", value = tostring(game.PlaceId), inline = true}, {name = "Status", value = "Connected", inline = true}}}
+		local tbl16 = {title = "Webhook Test", description = string.format("Connection test for **%s**", localPlayer2.Name), color = 5814783, timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ"), author = {name = "Sena Hub", icon_url = v15}, footer = {text = "discord.gg/senahub", icon_url = v15}, fields = {{name = "User", value = localPlayer2.Name, inline = true}, {name = "User ID", value = tostring(localPlayer2.UserId), inline = true}, {name = "Place ID", value = tostring(game.PlaceId), inline = true}, {name = "Status", value = "Connected", inline = true}}}
 		local v16 = fn62(str3)
 
 		if v16 then
@@ -14957,7 +14957,7 @@ genv.__SenaV4Webhook = (function()
 
 		v15 = arg
 		local v16 = fn63()
-		local tbl16 = {title = "Account Disconnected", description = string.format("**%s** was disconnected from Steal an Egg.", localPlayer2.Name), color = 15548997, timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ"), author = {name = "leon4951", icon_url = v16}, footer = {text = "leon4951", icon_url = v16}}
+		local tbl16 = {title = "Account Disconnected", description = string.format("**%s** was disconnected from Steal an Egg.", localPlayer2.Name), color = 15548997, timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ"), author = {name = "Sena Hub", icon_url = v16}, footer = {text = "discord.gg/senahub", icon_url = v16}}
 		tbl16.fields = {{name = "User", value = localPlayer2.Name, inline = true}, {name = "User ID", value = tostring(localPlayer2.UserId), inline = true}, {name = "Session", value = fn66(), inline = true}, {name = "Reason", value = arg:sub(1, 1000), inline = false}, {name = "Server", value = "`" .. tostring(game.JobId ~= "" and game.JobId or "unknown") .. "`", inline = false}}
 		local json = HttpService:JSONEncode({embeds = {tbl16}})
 
@@ -23852,7 +23852,7 @@ do
 					textLabel.Position = UDim2.new(0.34, 0, 0.017, 0)
 					textLabel.Size = UDim2.new(0.3, 0, 0.09, 0)
 					textLabel.Font = Enum.Font.GothamBlack
-					textLabel.Text = "leon4951"
+					textLabel.Text = "discord.gg/senahub"
 					textLabel.TextScaled = true
 					textLabel.TextXAlignment = Enum.TextXAlignment.Left
 					textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -25835,7 +25835,7 @@ local function fn65()
 	local tbl14 = {strokeCol = Color3.fromRGB(36, 36, 42), accent = Color3.fromRGB(26, 147, 250), accentA = Color3.fromRGB(19, 96, 250), accentB = Color3.fromRGB(33, 198, 250), surface = Color3.fromRGB(22, 22, 27), surfaceHi = Color3.fromRGB(28, 28, 34), text = Color3.fromRGB(235, 236, 245), btnText = Color3.fromRGB(186, 184, 198), muted = Color3.fromRGB(156, 154, 170), shadow = Color3.fromRGB(4, 4, 8), obsTop = Color3.fromRGB(18, 18, 24), obsMid = Color3.fromRGB(12, 12, 16), obsLow = Color3.fromRGB(10, 14, 26), btnBg = Color3.fromRGB(30, 30, 36), btnHover = Color3.fromRGB(44, 44, 52), inputBg = Color3.fromRGB(14, 14, 18), switchOff = Color3.fromRGB(42, 42, 48), good = Color3.fromRGB(163, 230, 53)}
 	local v21 = tbl14
 	local image = "rbxassetid://96240498384290"
-	local text = "leon4951"
+	local text = "discord.gg/senahub"
 
 	local function fn67()
 		pcall(function()
@@ -30645,14 +30645,78 @@ local function fn66()
 	end
 
 	pcall(function()
-		-- leon4951: key system removed — full access on execute
-		if type(flag6.SetDonator) == "function" then
-			flag6:SetDonator(true)
+		local HttpService = game:GetService("HttpService")
+		local str3 = "SenaHUB/sena_tier.json"
+
+		local function fn67()
+			local ok, result = pcall(flag6.GetSavedKey, flag6)
+			return ok and type(result) == "string" and result ~= "" and result or nil
 		end
+
+		local function fn68(arg, arg2)
+			pcall(function()
+				if makefolder and (isfolder and not isfolder("SenaHUB")) then
+					makefolder("SenaHUB")
+				end
+
+				writefile(str3, HttpService:JSONEncode({key = arg, at = os.time(), expires = tonumber(arg2 and arg2.expires) or 0, tier = arg2 and (arg2.is_trial == true or arg2.tier == "trial") and "trial" or "donator"}))
+			end)
+		end
+
+		local function fn69()
+			local ok, result = pcall(function()
+				return isfile and isfile(str3) and HttpService:JSONDecode(readfile(str3)) or nil
+			end)
+
+			return ok and type(result) == "table" and result or nil
+		end
+
+		flag6:SetDonator(true)
+		local v21 = fn67()
+		local v22 = fn69()
+
+		if v21 and v22 and v22.key == v21 and os.time() - (tonumber(v22.at) or 0) < 43200 and ((tonumber(v22.expires) or 0) == 0 or tonumber(v22.expires) > os.time()) then
+			if v22.tier == "trial" then
+				flag6:SetDonator(true)
+			else
+				flag6:SetDonator(true)
+			end
+		end
+
+		if v21 then
+			task.spawn(function()
+				local v23, v24 = flag6:CheckDonatorKey()
+				flag6:SetDonator(true)
+				pcall(function()
+					flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = 0}
+				end)
+				if v23 and type(v24) == "table" and v24.ok == true and v24.valid == true then
+					fn68(v21, v24)
+				end
+			end)
+		end
+
+		-- keep donator permanently unlocked
+		pcall(function()
+			flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = 0}
+			flag6:SetDonator(true)
+		end)
+		task.spawn(function()
+			for _ = 1, 20 do
+				task.wait(0.5)
+				pcall(function()
+					flag6:SetDonator(true)
+				end)
+			end
+		end)
+
 		if type(flag6.DonatorListeners) == "table" then
 			table.insert(flag6.DonatorListeners, function()
-				if type(flag6.SetDonator) == "function" then
-					flag6:SetDonator(true)
+				flag6:SetDonator(true)
+				local donatorInfo = flag6.DonatorInfo
+				local v23 = fn67()
+				if v23 and type(donatorInfo) == "table" then
+					fn68(v23, donatorInfo)
 				end
 			end)
 		end
@@ -32877,7 +32941,10 @@ local function fn66()
 
 	v27()
 	local flag13 = type(flag6.ApplyIcon) == "function"
-	local v28 = flag6:Window({Title = "leon4951 |", Footer = "Steal An Egg", Folder = "leon4951SAEv4", Version = 1, Color = Color3.fromRGB(0, 0, 0), Image = "", KeyGate = false})
+	local v28 = flag6:Window({Title = "Sena 6.2 |", Footer = "Steal An Egg", Folder = "SenaSAEv4", Version = 1, Color = Color3.fromRGB(0, 122, 255), Image = "", KeyGate = false})
+	pcall(function()
+		flag6.Notify = function() end
+	end)
 	fn155(v28)
 	local tbl24 = {}
 	local tbl25 = {"Respawn Point"}
@@ -32997,7 +33064,7 @@ local function fn66()
 		end)
 	end
 
-	v28:AddTab({Name = "Donate", Icon = "donator", LayoutOrder = -1, StartActive = false, Gate = false}):AddSection("Support leon4951", true):AddSupportCard({})
+	v28:AddTab({Name = "Donate", Icon = "donator", LayoutOrder = -1, StartActive = false, Gate = false}):AddSection("Support Sena", true):AddSupportCard({})
 	local v30 = v28:AddTab({Name = "Home", Icon = "home", LayoutOrder = 1})
 	local v31 = v28:AddTab({Name = "Windows", Icon = "app-window", LayoutOrder = 2})
 	local v32 = v28:AddTab({Name = "Steal", Icon = "hand", LayoutOrder = 3})
@@ -33172,7 +33239,7 @@ local function fn66()
 	if type(fn68.AddPriorityList) == "function" then
 		tbl24.taskOrder = fn68:AddPriorityList({Title = "Task Order", Content = "Higher rows get the character first. An egg you are carrying is always delivered first, and a boss fight that has started is never left.", Flag = "TaskOrder", Items = tbl28, Default = senaV4TaskLadder.DEFAULT, EmptyText = "Turn on Auto Steal, Auto Place or another feature to order it here.", Callback = fn144(fn156)})
 	else
-		fn68:AddParagraph({Title = "Task Order", Content = "Update the leon4951 library to reorder tasks. Using the default order: Auto Steal, Race Rally, Shooting Star, Mech Boss, Farm Drones, Auto Place, Use Scrambled, Auto Sell, Treadmill."})
+		fn68:AddParagraph({Title = "Task Order", Content = "Update the Sena library to reorder tasks. Using the default order: Auto Steal, Race Rally, Shooting Star, Mech Boss, Farm Drones, Auto Place, Use Scrambled, Auto Sell, Treadmill."})
 	end
 
 	v25 = tbl24.section(v33, "Egg Automation", tbl24.gameIcon("Assets", "Directory", "Dragon", "Egg", "Icon"))
@@ -33259,7 +33326,7 @@ local function fn66()
 					return false
 				end
 				local highlight = Instance.new("Highlight")
-				highlight.FillColor = Color3.fromRGB(0, 0, 0)
+				highlight.FillColor = Color3.fromRGB(232, 232, 238)
 				highlight.FillTransparency = 0.55
 				highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
 				highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
@@ -33988,7 +34055,7 @@ local function fn66()
 	if v64.AddActionList then
 		v67, v68 = v64:AddActionList({Title = "Players in this server", EmptyText = "Nobody else is in this server.", VisibleRows = 6, ButtonWidth = 76}), fn69:AddActionList({Title = "History of stolen eggs from players", EmptyText = "No player steals yet.", VisibleRows = 5, ButtonWidth = 72})
 	else
-		v64:AddParagraph({Title = "Update required", Content = "This leon4951 UI build has no player list yet. Rejoin to pull the latest version."})
+		v64:AddParagraph({Title = "Update required", Content = "This Sena UI build has no player list yet. Rejoin to pull the latest version."})
 		v67, v68 = v65, v66
 	end
 
@@ -34533,6 +34600,129 @@ local function fn66()
 			end
 		end
 	end
+
+
+	-- theme restyle + floating F (Leon look, features stay)
+	pcall(function()
+		local ThemeBg = Color3.fromRGB(7, 10, 17)
+		local ThemeCard = Color3.fromRGB(14, 20, 32)
+		local ThemeAccent = Color3.fromRGB(0, 122, 255)
+		local ThemeMuted = Color3.fromRGB(130, 145, 175)
+		local ThemeText = Color3.fromRGB(245, 247, 255)
+
+		local function paint(gui)
+			if typeof(gui) ~= "Instance" then
+				return
+			end
+			for _, d in ipairs(gui:GetDescendants()) do
+				pcall(function()
+					if d:IsA("Frame") or d:IsA("ScrollingFrame") then
+						local n = string.lower(d.Name)
+						if d.BackgroundTransparency <= 0.15 then
+							if n:find("main") or n:find("window") or n:find("container") or n:find("holder") or n:find("background") then
+								d.BackgroundColor3 = ThemeBg
+							elseif n:find("tab") or n:find("side") or n:find("panel") or n:find("section") or n:find("card") then
+								d.BackgroundColor3 = ThemeCard
+							end
+						end
+					elseif d:IsA("UIStroke") then
+						d.Color = ThemeAccent
+					elseif d:IsA("TextLabel") or d:IsA("TextButton") then
+						if d.TextColor3.R > 0.7 and d.TextColor3.G > 0.7 and d.TextColor3.B > 0.7 then
+							d.TextColor3 = ThemeText
+						end
+					end
+				end)
+			end
+		end
+
+		local gui = rawget(v28, "Gui")
+		paint(gui)
+		task.delay(1, function()
+			paint(rawget(v28, "Gui"))
+		end)
+
+		-- hide stock toggle button
+		local CoreGui = game:GetService("CoreGui")
+		local parents = {CoreGui}
+		pcall(function()
+			if gethui then
+				table.insert(parents, gethui())
+			end
+		end)
+		for _, parent in ipairs(parents) do
+			for _, ch in ipairs(parent:GetChildren()) do
+				if ch.Name == "ToggleUIButton" then
+					pcall(function()
+						ch.Enabled = false
+					end)
+				end
+			end
+		end
+
+		-- floating F toggle
+		local parent = CoreGui
+		pcall(function()
+			if gethui then
+				parent = gethui()
+			end
+		end)
+		local old = parent:FindFirstChild("leon4951FloatToggle")
+		if old then
+			old:Destroy()
+		end
+		local sg = Instance.new("ScreenGui")
+		sg.Name = "leon4951FloatToggle"
+		sg.ResetOnSpawn = false
+		sg.IgnoreGuiInset = true
+		sg.DisplayOrder = 120
+		sg.Parent = parent
+		local btn = Instance.new("TextButton")
+		btn.Size = UDim2.fromOffset(44, 44)
+		btn.Position = UDim2.new(0, 20, 0.4, 0)
+		btn.AnchorPoint = Vector2.new(0, 0.5)
+		btn.BackgroundColor3 = ThemeBg
+		btn.Text = "F"
+		btn.Font = Enum.Font.GothamBold
+		btn.TextSize = 18
+		btn.TextColor3 = ThemeAccent
+		btn.AutoButtonColor = false
+		btn.Parent = sg
+		Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 11)
+		local st = Instance.new("UIStroke")
+		st.Color = ThemeAccent
+		st.Thickness = 1.5
+		st.Parent = btn
+		btn.MouseButton1Click:Connect(function()
+			local g = rawget(v28, "Gui")
+			if typeof(g) == "Instance" then
+				g.Enabled = not g.Enabled
+			end
+		end)
+		local drag, d0, p0
+		local UIS = game:GetService("UserInputService")
+		btn.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				drag = true
+				d0 = input.Position
+				p0 = btn.Position
+			end
+		end)
+		UIS.InputEnded:Connect(function()
+			drag = false
+		end)
+		UIS.InputChanged:Connect(function(input)
+			if drag and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+				local d = input.Position - d0
+				btn.Position = UDim2.new(p0.X.Scale, p0.X.Offset + d.X, p0.Y.Scale, p0.Y.Offset + d.Y)
+			end
+		end)
+
+		-- re-assert donator after UI exists
+		pcall(function()
+			flag6:SetDonator(true)
+		end)
+	end)
 
 	flag = true
 end
