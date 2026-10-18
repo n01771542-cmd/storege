@@ -33055,58 +33055,45 @@ local function fn66()
 		local donateTab = v28:AddTab({Name = "Donate", Icon = "donator", LayoutOrder = -1, StartActive = false, Gate = false})
 		local donateSec = flag13 and donateTab:AddSection({Title = " ", Header = false}) or donateTab:AddSection(" ", true)
 		pcall(function()
-			donateSec:AddParagraph({Title = "Cracked | leon4951", Content = "Cracked | leon4951"})
+			donateSec:AddParagraph({Title = " ", Content = " "})
 		end)
-		task.spawn(function()
-			local gold = Color3.fromRGB(255, 185, 0)
-			for _ = 1, 40 do
-				task.wait(0.25)
-				local gui = rawget(v28, "Gui")
-				if typeof(gui) == "Instance" then
-				-- paint any paragraph that carries our title
-				for _, d in ipairs(gui:GetDescendants()) do
-					if (d:IsA("TextLabel") or d:IsA("TextButton")) and tostring(d.Text):find("Cracked") then
-						d.Text = "Cracked | leon4951"
-						d.TextColor3 = gold
-						pcall(function()
-							d.TextSize = math.max(d.TextSize, 22)
-							d.Font = Enum.Font.GothamBold
-							d.TextXAlignment = Enum.TextXAlignment.Center
-						end)
-					end
-				end
-				-- ensure overlay label exists on largest content frame
-				local host, best = gui, 0
-				for _, d in ipairs(gui:GetDescendants()) do
-					if d:IsA("Frame") or d:IsA("ScrollingFrame") then
-						local a = d.AbsoluteSize
-						local area = a.X * a.Y
-						if a.X > 220 and a.Y > 140 and area > best then
-							best = area
+		-- big centered gold text injected after gui exists
+		task.defer(function()
+			task.wait(0.4)
+			local gui = rawget(v28, "Gui")
+			if typeof(gui) ~= "Instance" then
+				return
+			end
+			local host = nil
+			for _, d in ipairs(gui:GetDescendants()) do
+				if d:IsA("ScrollingFrame") or d:IsA("Frame") then
+					local n = string.lower(d.Name)
+					if n:find("content") or n:find("page") or n:find("body") or n:find("holder") then
+						if d.AbsoluteSize.X > 200 and d.AbsoluteSize.Y > 120 then
 							host = d
 						end
 					end
 				end
-				local lbl = host:FindFirstChild("LeonCrackedLabel")
-				if not lbl then
-					lbl = Instance.new("TextLabel")
-					lbl.Name = "LeonCrackedLabel"
-					lbl.BackgroundTransparency = 1
-					lbl.Size = UDim2.fromScale(1, 1)
-					lbl.Font = Enum.Font.GothamBold
-					lbl.TextSize = 28
-					lbl.TextColor3 = gold
-					lbl.Text = "Cracked | leon4951"
-					lbl.TextXAlignment = Enum.TextXAlignment.Center
-					lbl.TextYAlignment = Enum.TextYAlignment.Center
-					lbl.ZIndex = 100
-					lbl.Parent = host
-				else
-					lbl.Text = "Cracked | leon4951"
-					lbl.TextColor3 = gold
-					lbl.Visible = true
-				end
 			end
+			host = host or gui
+			local old = host:FindFirstChild("LeonCrackedLabel")
+			if old then
+				old:Destroy()
+			end
+			local lbl = Instance.new("TextLabel")
+			lbl.Name = "LeonCrackedLabel"
+			lbl.BackgroundTransparency = 1
+			lbl.Size = UDim2.fromScale(1, 1)
+			lbl.Position = UDim2.fromScale(0, 0)
+			lbl.AnchorPoint = Vector2.new(0, 0)
+			lbl.Font = Enum.Font.GothamBold
+			lbl.TextSize = 28
+			lbl.TextColor3 = Color3.fromRGB(255, 185, 0)
+			lbl.Text = "Cracked | leon4951"
+			lbl.TextXAlignment = Enum.TextXAlignment.Center
+			lbl.TextYAlignment = Enum.TextYAlignment.Center
+			lbl.ZIndex = 50
+			lbl.Parent = host
 		end)
 	end
 	local v30 = v28:AddTab({Name = "Home", Icon = "home", LayoutOrder = 1})
@@ -34650,29 +34637,31 @@ local function fn66()
 		flag6:SetDonator(true, false)
 		flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = os.time() + 999 * 86400, days = 999}
 		task.spawn(function()
-			local gold = Color3.fromRGB(255, 185, 0)
-			while fn2() do
+			for _ = 1, 30 do
 				pcall(function()
 					flag6:SetDonator(true, false)
 					flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = os.time() + 999 * 86400, days = 999}
 				end)
+				-- bottom-right: Donator + Day 999
 				local gui = rawget(v28, "Gui")
 				if typeof(gui) == "Instance" then
 					for _, d in ipairs(gui:GetDescendants()) do
 						if d:IsA("TextLabel") or d:IsA("TextButton") then
 							local t = tostring(d.Text)
-							local tl = t:lower():gsub("%s+", "")
+							local tl = t:lower()
 							if t == "Trial" or tl == "trial" then
 								d.Text = "Donator"
-								d.TextColor3 = gold
-							elseif tl:match("^%d+d$") or tl:match("^%d+day") or tl:match("^%d+days$") then
-								d.Text = "999d"
-								d.TextColor3 = gold
+								d.TextColor3 = Color3.fromRGB(255, 185, 0)
+							elseif tl:find("day") and not tl:find("players") then
+								d.Text = "999"
+								d.TextColor3 = Color3.fromRGB(255, 185, 0)
+							elseif tl:match("^%d+%s*d") or tl:match("^%d+%s*day") then
+								d.Text = "999"
 							end
 						end
 					end
 				end
-				task.wait(0.35)
+				task.wait(0.4)
 			end
 		end)
 	end)
