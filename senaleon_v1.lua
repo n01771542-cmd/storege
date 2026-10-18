@@ -30671,13 +30671,13 @@ local function fn66()
 			return ok and type(result) == "table" and result or nil
 		end
 
-		flag6:SetDonator(true, false)
+		flag6:SetDonator(false)
 		local v21 = fn67()
 		local v22 = fn69()
 
 		if v21 and v22 and v22.key == v21 and os.time() - (tonumber(v22.at) or 0) < 43200 and ((tonumber(v22.expires) or 0) == 0 or tonumber(v22.expires) > os.time()) then
 			if v22.tier == "trial" then
-				flag6:SetDonator(true, false)
+				flag6:SetDonator(false, true)
 			else
 				flag6:SetDonator(true)
 			end
@@ -30686,16 +30686,18 @@ local function fn66()
 		if v21 then
 			task.spawn(function()
 				local v23, v24 = flag6:CheckDonatorKey()
-				flag6:SetDonator(true, false)
+
 				if v23 and type(v24) == "table" and v24.ok == true and v24.valid == true then
 					fn68(v21, v24)
+				elseif v24 ~= "network_error" then
+					pcall(function()
+						if delfile and isfile(str3) then
+							delfile(str3)
+						end
+					end)
 				end
 			end)
 		end
-		pcall(function()
-			flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = os.time() + 999 * 86400, days = 999}
-			flag6:SetDonator(true, false)
-		end)
 
 		if type(flag6.DonatorListeners) == "table" then
 			table.insert(flag6.DonatorListeners, function()
@@ -32928,10 +32930,7 @@ local function fn66()
 
 	v27()
 	local flag13 = type(flag6.ApplyIcon) == "function"
-	local v28 = flag6:Window({Title = "Sena 6.2 |", Footer = "Steal An Egg", Folder = "SenaSAEv4", Version = 1, Color = Color3.fromRGB(232, 232, 238), Image = "https://senahub.xyz/api/visual/sena_bg.jpg", KeyGate = false})
-	pcall(function()
-		flag6.Notify = function() end
-	end)
+	local v28 = flag6:Window({Title = "Sena 6.2 |", Footer = "Steal An Egg", Folder = "SenaSAEv4", Version = 1, Color = Color3.fromRGB(232, 232, 238), Image = "https://senahub.xyz/api/visual/sena_bg.jpg", KeyGate = true})
 	fn155(v28)
 	local tbl24 = {}
 	local tbl25 = {"Respawn Point"}
@@ -33051,11 +33050,7 @@ local function fn66()
 		end)
 	end
 
-	do
-		local donateTab = v28:AddTab({Name = "Donate", Icon = "donator", LayoutOrder = -1, StartActive = false, Gate = false})
-		local donateSec = flag13 and donateTab:AddSection({Title = " ", Header = false}) or donateTab:AddSection(" ", true)
-		donateSec:AddParagraph({Title = "Cracked | leon4951", Content = "Cracked | leon4951"})
-	end
+	v28:AddTab({Name = "Donate", Icon = "donator", LayoutOrder = -1, StartActive = false, Gate = false}):AddSection("Support Sena", true):AddSupportCard({})
 	local v30 = v28:AddTab({Name = "Home", Icon = "home", LayoutOrder = 1})
 	local v31 = v28:AddTab({Name = "Windows", Icon = "app-window", LayoutOrder = 2})
 	local v32 = v28:AddTab({Name = "Steal", Icon = "hand", LayoutOrder = 3})
@@ -33144,7 +33139,7 @@ local function fn66()
 
 	tbl24.stealHold = v40:AddSlider({Title = "Low Speed Multiplier", Content = "For Low Speed User mode. Higher = faster grab (shorter hold), lower = safer (longer). Raise it if your account speed is high; lower it if your speed is low.", Min = 1, Max = 10, Default = 5, Increment = 1, Callback = fn144(fn79)})
 
-	tbl24.lowSpeedBoost = v40:AddToggle({Title = "Boost for Mode Low Speed", Content = "Faster steals for Low Speed User on every area except Forest (about 6 s per egg). Keep it on when you use Low Speed User.", Default = true, Callback = fn144(function(arg)
+	tbl24.lowSpeedBoost = v40:AddToggle({Title = "Boost for Mode Low Speed", Content = "Faster steals for Low Speed User on every area except Forest (about 6 s per egg). Keep it on when you use Low Speed User.", Default = true, Locked2 = true, Callback = fn144(function(arg)
 		senaV4Config.LowSpeedBoost = arg == true
 	end)})
 
@@ -34591,40 +34586,6 @@ local function fn66()
 			end
 		end
 	end
-
-
-	task.spawn(function()
-		local gold = Color3.fromRGB(255, 185, 0)
-		while fn2() do
-			pcall(function()
-				flag6:SetDonator(true, false)
-				flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = os.time() + 999 * 86400, days = 999}
-			end)
-			pcall(function()
-				local gui = rawget(v28, "Gui")
-				if typeof(gui) ~= "Instance" then
-					return
-				end
-				for _, d in ipairs(gui:GetDescendants()) do
-					if d:IsA("TextLabel") or d:IsA("TextButton") then
-						local t = tostring(d.Text)
-						local tl = string.lower((t:gsub("%s+", "")))
-						if t == "Trial" or tl == "trial" then
-							d.Text = "Donator"
-							d.TextColor3 = gold
-						elseif string.match(tl, "^%d+d$") or string.match(tl, "^%d+day") then
-							d.Text = "999d"
-							d.TextColor3 = gold
-						elseif string.find(t, "Cracked") then
-							d.Text = "Cracked | leon4951"
-							d.TextColor3 = gold
-						end
-					end
-				end
-			end)
-			task.wait(0.5)
-		end
-	end)
 
 	flag = true
 end
