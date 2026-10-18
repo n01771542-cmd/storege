@@ -30671,22 +30671,22 @@ local function fn66()
 			return ok and type(result) == "table" and result or nil
 		end
 
-		flag6:SetDonator(true)
+		flag6:SetDonator(true, false)
 		local v21 = fn67()
 		local v22 = fn69()
 
 		if v21 and v22 and v22.key == v21 and os.time() - (tonumber(v22.at) or 0) < 43200 and ((tonumber(v22.expires) or 0) == 0 or tonumber(v22.expires) > os.time()) then
 			if v22.tier == "trial" then
-				flag6:SetDonator(true)
+				flag6:SetDonator(true, false)
 			else
-				flag6:SetDonator(true)
+				flag6:SetDonator(true, false)
 			end
 		end
 
 		if v21 then
 			task.spawn(function()
 				local v23, v24 = flag6:CheckDonatorKey()
-				flag6:SetDonator(true)
+				flag6:SetDonator(true, false)
 				if v23 and type(v24) == "table" and v24.ok == true and v24.valid == true then
 					fn68(v21, v24)
 				end
@@ -30694,7 +30694,7 @@ local function fn66()
 		end
 		pcall(function()
 			flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = 0}
-			flag6:SetDonator(true)
+			flag6:SetDonator(true, false)
 		end)
 
 		if type(flag6.DonatorListeners) == "table" then
@@ -33054,11 +33054,47 @@ local function fn66()
 	do
 		local donateTab = v28:AddTab({Name = "Donate", Icon = "donator", LayoutOrder = -1, StartActive = false, Gate = false})
 		local donateSec = flag13 and donateTab:AddSection({Title = " ", Header = false}) or donateTab:AddSection(" ", true)
-		-- yellow same as donator gold badge RGB(255, 185, 0)
-		donateSec:AddParagraph({
-			Title = '<font color="#FFB900">Cracked | by leon4951</font>',
-			Content = '<font color="#FFB900">Cracked | by leon4951</font>',
-		})
+		pcall(function()
+			donateSec:AddParagraph({Title = " ", Content = " "})
+		end)
+		-- big centered gold text injected after gui exists
+		task.defer(function()
+			task.wait(0.4)
+			local gui = rawget(v28, "Gui")
+			if typeof(gui) ~= "Instance" then
+				return
+			end
+			local host = nil
+			for _, d in ipairs(gui:GetDescendants()) do
+				if d:IsA("ScrollingFrame") or d:IsA("Frame") then
+					local n = string.lower(d.Name)
+					if n:find("content") or n:find("page") or n:find("body") or n:find("holder") then
+						if d.AbsoluteSize.X > 200 and d.AbsoluteSize.Y > 120 then
+							host = d
+						end
+					end
+				end
+			end
+			host = host or gui
+			local old = host:FindFirstChild("LeonCrackedLabel")
+			if old then
+				old:Destroy()
+			end
+			local lbl = Instance.new("TextLabel")
+			lbl.Name = "LeonCrackedLabel"
+			lbl.BackgroundTransparency = 1
+			lbl.Size = UDim2.fromScale(1, 1)
+			lbl.Position = UDim2.fromScale(0, 0)
+			lbl.AnchorPoint = Vector2.new(0, 0)
+			lbl.Font = Enum.Font.GothamBold
+			lbl.TextSize = 28
+			lbl.TextColor3 = Color3.fromRGB(255, 185, 0)
+			lbl.Text = "Cracked | by leon4951"
+			lbl.TextXAlignment = Enum.TextXAlignment.Center
+			lbl.TextYAlignment = Enum.TextYAlignment.Center
+			lbl.ZIndex = 50
+			lbl.Parent = host
+		end)
 	end
 	local v30 = v28:AddTab({Name = "Home", Icon = "home", LayoutOrder = 1})
 	local v31 = v28:AddTab({Name = "Windows", Icon = "app-window", LayoutOrder = 2})
@@ -33148,7 +33184,7 @@ local function fn66()
 
 	tbl24.stealHold = v40:AddSlider({Title = "Low Speed Multiplier", Content = "For Low Speed User mode. Higher = faster grab (shorter hold), lower = safer (longer). Raise it if your account speed is high; lower it if your speed is low.", Min = 1, Max = 10, Default = 5, Increment = 1, Callback = fn144(fn79)})
 
-	tbl24.lowSpeedBoost = v40:AddToggle({Title = "Boost for Mode Low Speed", Content = "Faster steals for Low Speed User on every area except Forest (about 6 s per egg). Keep it on when you use Low Speed User.", Default = true, Locked2 = true, Callback = fn144(function(arg)
+	tbl24.lowSpeedBoost = v40:AddToggle({Title = "Boost for Mode Low Speed", Content = "Faster steals for Low Speed User on every area except Forest (about 6 s per egg). Keep it on when you use Low Speed User.", Default = true, Callback = fn144(function(arg)
 		senaV4Config.LowSpeedBoost = arg == true
 	end)})
 
@@ -34595,6 +34631,34 @@ local function fn66()
 			end
 		end
 	end
+
+
+	pcall(function()
+		flag6:SetDonator(true, false)
+		flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = 0}
+		task.spawn(function()
+			for _ = 1, 30 do
+				pcall(function()
+					flag6:SetDonator(true, false)
+					flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = 0}
+				end)
+				-- hide Trial badge text
+				local gui = rawget(v28, "Gui")
+				if typeof(gui) == "Instance" then
+					for _, d in ipairs(gui:GetDescendants()) do
+						if d:IsA("TextLabel") or d:IsA("TextButton") then
+							local t = tostring(d.Text)
+							if t == "Trial" or t:lower() == "trial" then
+								d.Text = "Donator"
+								d.TextColor3 = Color3.fromRGB(255, 185, 0)
+							end
+						end
+					end
+				end
+				task.wait(0.4)
+			end
+		end)
+	end)
 
 	flag = true
 end
