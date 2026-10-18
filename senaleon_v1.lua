@@ -30679,7 +30679,7 @@ local function fn66()
 			if v22.tier == "trial" then
 				flag6:SetDonator(true, false)
 			else
-				flag6:SetDonator(true, false)
+				flag6:SetDonator(true)
 			end
 		end
 
@@ -33054,47 +33054,7 @@ local function fn66()
 	do
 		local donateTab = v28:AddTab({Name = "Donate", Icon = "donator", LayoutOrder = -1, StartActive = false, Gate = false})
 		local donateSec = flag13 and donateTab:AddSection({Title = " ", Header = false}) or donateTab:AddSection(" ", true)
-		pcall(function()
-			donateSec:AddParagraph({Title = " ", Content = " "})
-		end)
-		-- big centered gold text injected after gui exists
-		task.defer(function()
-			task.wait(0.4)
-			local gui = rawget(v28, "Gui")
-			if typeof(gui) ~= "Instance" then
-				return
-			end
-			local host = nil
-			for _, d in ipairs(gui:GetDescendants()) do
-				if d:IsA("ScrollingFrame") or d:IsA("Frame") then
-					local n = string.lower(d.Name)
-					if n:find("content") or n:find("page") or n:find("body") or n:find("holder") then
-						if d.AbsoluteSize.X > 200 and d.AbsoluteSize.Y > 120 then
-							host = d
-						end
-					end
-				end
-			end
-			host = host or gui
-			local old = host:FindFirstChild("LeonCrackedLabel")
-			if old then
-				old:Destroy()
-			end
-			local lbl = Instance.new("TextLabel")
-			lbl.Name = "LeonCrackedLabel"
-			lbl.BackgroundTransparency = 1
-			lbl.Size = UDim2.fromScale(1, 1)
-			lbl.Position = UDim2.fromScale(0, 0)
-			lbl.AnchorPoint = Vector2.new(0, 0)
-			lbl.Font = Enum.Font.GothamBold
-			lbl.TextSize = 28
-			lbl.TextColor3 = Color3.fromRGB(255, 185, 0)
-			lbl.Text = "Cracked | leon4951"
-			lbl.TextXAlignment = Enum.TextXAlignment.Center
-			lbl.TextYAlignment = Enum.TextYAlignment.Center
-			lbl.ZIndex = 50
-			lbl.Parent = host
-		end)
+		donateSec:AddParagraph({Title = "Cracked | leon4951", Content = "Cracked | leon4951"})
 	end
 	local v30 = v28:AddTab({Name = "Home", Icon = "home", LayoutOrder = 1})
 	local v31 = v28:AddTab({Name = "Windows", Icon = "app-window", LayoutOrder = 2})
@@ -34633,37 +34593,37 @@ local function fn66()
 	end
 
 
-	pcall(function()
-		flag6:SetDonator(true, false)
-		flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = os.time() + 999 * 86400, days = 999}
-		task.spawn(function()
-			for _ = 1, 30 do
-				pcall(function()
-					flag6:SetDonator(true, false)
-					flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = os.time() + 999 * 86400, days = 999}
-				end)
-				-- bottom-right: Donator + Day 999
+	task.spawn(function()
+		local gold = Color3.fromRGB(255, 185, 0)
+		while fn2() do
+			pcall(function()
+				flag6:SetDonator(true, false)
+				flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = os.time() + 999 * 86400, days = 999}
+			end)
+			pcall(function()
 				local gui = rawget(v28, "Gui")
-				if typeof(gui) == "Instance" then
-					for _, d in ipairs(gui:GetDescendants()) do
-						if d:IsA("TextLabel") or d:IsA("TextButton") then
-							local t = tostring(d.Text)
-							local tl = t:lower()
-							if t == "Trial" or tl == "trial" then
-								d.Text = "Donator"
-								d.TextColor3 = Color3.fromRGB(255, 185, 0)
-							elseif tl:find("day") and not tl:find("players") then
-								d.Text = "999"
-								d.TextColor3 = Color3.fromRGB(255, 185, 0)
-							elseif tl:match("^%d+%s*d") or tl:match("^%d+%s*day") then
-								d.Text = "999"
-							end
+				if typeof(gui) ~= "Instance" then
+					return
+				end
+				for _, d in ipairs(gui:GetDescendants()) do
+					if d:IsA("TextLabel") or d:IsA("TextButton") then
+						local t = tostring(d.Text)
+						local tl = string.lower((t:gsub("%s+", "")))
+						if t == "Trial" or tl == "trial" then
+							d.Text = "Donator"
+							d.TextColor3 = gold
+						elseif string.match(tl, "^%d+d$") or string.match(tl, "^%d+day") then
+							d.Text = "999d"
+							d.TextColor3 = gold
+						elseif string.find(t, "Cracked") then
+							d.Text = "Cracked | leon4951"
+							d.TextColor3 = gold
 						end
 					end
 				end
-				task.wait(0.4)
-			end
-		end)
+			end)
+			task.wait(0.5)
+		end
 	end)
 
 	flag = true
