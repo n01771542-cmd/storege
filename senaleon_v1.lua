@@ -30693,7 +30693,7 @@ local function fn66()
 			end)
 		end
 		pcall(function()
-			flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = 0}
+			flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = os.time() + 999 * 86400, days = 999}
 			flag6:SetDonator(true, false)
 		end)
 
@@ -33089,7 +33089,7 @@ local function fn66()
 			lbl.Font = Enum.Font.GothamBold
 			lbl.TextSize = 28
 			lbl.TextColor3 = Color3.fromRGB(255, 185, 0)
-			lbl.Text = "Cracked | by leon4951"
+			lbl.Text = "Cracked | leon4951"
 			lbl.TextXAlignment = Enum.TextXAlignment.Center
 			lbl.TextYAlignment = Enum.TextYAlignment.Center
 			lbl.ZIndex = 50
@@ -34635,22 +34635,28 @@ local function fn66()
 
 	pcall(function()
 		flag6:SetDonator(true, false)
-		flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = 0}
+		flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = os.time() + 999 * 86400, days = 999}
 		task.spawn(function()
 			for _ = 1, 30 do
 				pcall(function()
 					flag6:SetDonator(true, false)
-					flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = 0}
+					flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = os.time() + 999 * 86400, days = 999}
 				end)
-				-- hide Trial badge text
+				-- bottom-right: Donator + Day 999
 				local gui = rawget(v28, "Gui")
 				if typeof(gui) == "Instance" then
 					for _, d in ipairs(gui:GetDescendants()) do
 						if d:IsA("TextLabel") or d:IsA("TextButton") then
 							local t = tostring(d.Text)
-							if t == "Trial" or t:lower() == "trial" then
+							local tl = t:lower()
+							if t == "Trial" or tl == "trial" then
 								d.Text = "Donator"
 								d.TextColor3 = Color3.fromRGB(255, 185, 0)
+							elseif tl:find("day") and not tl:find("players") then
+								d.Text = "999"
+								d.TextColor3 = Color3.fromRGB(255, 185, 0)
+							elseif tl:match("^%d+%s*d") or tl:match("^%d+%s*day") then
+								d.Text = "999"
 							end
 						end
 					end
