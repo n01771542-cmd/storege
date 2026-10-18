@@ -30687,35 +30687,22 @@ local function fn66()
 			task.spawn(function()
 				local v23, v24 = flag6:CheckDonatorKey()
 				flag6:SetDonator(true)
-				pcall(function()
-					flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = 0}
-				end)
 				if v23 and type(v24) == "table" and v24.ok == true and v24.valid == true then
 					fn68(v21, v24)
 				end
 			end)
 		end
-
-		-- keep donator permanently unlocked
 		pcall(function()
 			flag6.DonatorInfo = {ok = true, valid = true, is_trial = false, tier = "donator", expires = 0}
 			flag6:SetDonator(true)
 		end)
-		task.spawn(function()
-			for _ = 1, 20 do
-				task.wait(0.5)
-				pcall(function()
-					flag6:SetDonator(true)
-				end)
-			end
-		end)
 
 		if type(flag6.DonatorListeners) == "table" then
 			table.insert(flag6.DonatorListeners, function()
-				flag6:SetDonator(true)
 				local donatorInfo = flag6.DonatorInfo
 				local v23 = fn67()
-				if v23 and type(donatorInfo) == "table" then
+
+				if flag6:IsDonator() and (v23 and (type(donatorInfo) == "table" and donatorInfo.ok == true)) then
 					fn68(v23, donatorInfo)
 				end
 			end)
@@ -32941,7 +32928,7 @@ local function fn66()
 
 	v27()
 	local flag13 = type(flag6.ApplyIcon) == "function"
-	local v28 = flag6:Window({Title = "Sena 6.2 |", Footer = "Steal An Egg", Folder = "SenaSAEv4", Version = 1, Color = Color3.fromRGB(0, 122, 255), Image = "", KeyGate = false})
+	local v28 = flag6:Window({Title = "Sena 6.2 |", Footer = "Steal An Egg", Folder = "SenaSAEv4", Version = 1, Color = Color3.fromRGB(232, 232, 238), Image = "https://senahub.xyz/api/visual/sena_bg.jpg", KeyGate = false})
 	pcall(function()
 		flag6.Notify = function() end
 	end)
@@ -33064,7 +33051,15 @@ local function fn66()
 		end)
 	end
 
-	v28:AddTab({Name = "Donate", Icon = "donator", LayoutOrder = -1, StartActive = false, Gate = false}):AddSection("Support Sena", true):AddSupportCard({})
+	do
+		local donateTab = v28:AddTab({Name = "Donate", Icon = "donator", LayoutOrder = -1, StartActive = false, Gate = false})
+		local donateSec = flag13 and donateTab:AddSection({Title = " ", Header = false}) or donateTab:AddSection(" ", true)
+		-- yellow same as donator gold badge RGB(255, 185, 0)
+		donateSec:AddParagraph({
+			Title = '<font color="#FFB900">Cracked | by leon4951</font>',
+			Content = '<font color="#FFB900">Cracked | by leon4951</font>',
+		})
+	end
 	local v30 = v28:AddTab({Name = "Home", Icon = "home", LayoutOrder = 1})
 	local v31 = v28:AddTab({Name = "Windows", Icon = "app-window", LayoutOrder = 2})
 	local v32 = v28:AddTab({Name = "Steal", Icon = "hand", LayoutOrder = 3})
@@ -34600,129 +34595,6 @@ local function fn66()
 			end
 		end
 	end
-
-
-	-- theme restyle + floating F (Leon look, features stay)
-	pcall(function()
-		local ThemeBg = Color3.fromRGB(7, 10, 17)
-		local ThemeCard = Color3.fromRGB(14, 20, 32)
-		local ThemeAccent = Color3.fromRGB(0, 122, 255)
-		local ThemeMuted = Color3.fromRGB(130, 145, 175)
-		local ThemeText = Color3.fromRGB(245, 247, 255)
-
-		local function paint(gui)
-			if typeof(gui) ~= "Instance" then
-				return
-			end
-			for _, d in ipairs(gui:GetDescendants()) do
-				pcall(function()
-					if d:IsA("Frame") or d:IsA("ScrollingFrame") then
-						local n = string.lower(d.Name)
-						if d.BackgroundTransparency <= 0.15 then
-							if n:find("main") or n:find("window") or n:find("container") or n:find("holder") or n:find("background") then
-								d.BackgroundColor3 = ThemeBg
-							elseif n:find("tab") or n:find("side") or n:find("panel") or n:find("section") or n:find("card") then
-								d.BackgroundColor3 = ThemeCard
-							end
-						end
-					elseif d:IsA("UIStroke") then
-						d.Color = ThemeAccent
-					elseif d:IsA("TextLabel") or d:IsA("TextButton") then
-						if d.TextColor3.R > 0.7 and d.TextColor3.G > 0.7 and d.TextColor3.B > 0.7 then
-							d.TextColor3 = ThemeText
-						end
-					end
-				end)
-			end
-		end
-
-		local gui = rawget(v28, "Gui")
-		paint(gui)
-		task.delay(1, function()
-			paint(rawget(v28, "Gui"))
-		end)
-
-		-- hide stock toggle button
-		local CoreGui = game:GetService("CoreGui")
-		local parents = {CoreGui}
-		pcall(function()
-			if gethui then
-				table.insert(parents, gethui())
-			end
-		end)
-		for _, parent in ipairs(parents) do
-			for _, ch in ipairs(parent:GetChildren()) do
-				if ch.Name == "ToggleUIButton" then
-					pcall(function()
-						ch.Enabled = false
-					end)
-				end
-			end
-		end
-
-		-- floating F toggle
-		local parent = CoreGui
-		pcall(function()
-			if gethui then
-				parent = gethui()
-			end
-		end)
-		local old = parent:FindFirstChild("leon4951FloatToggle")
-		if old then
-			old:Destroy()
-		end
-		local sg = Instance.new("ScreenGui")
-		sg.Name = "leon4951FloatToggle"
-		sg.ResetOnSpawn = false
-		sg.IgnoreGuiInset = true
-		sg.DisplayOrder = 120
-		sg.Parent = parent
-		local btn = Instance.new("TextButton")
-		btn.Size = UDim2.fromOffset(44, 44)
-		btn.Position = UDim2.new(0, 20, 0.4, 0)
-		btn.AnchorPoint = Vector2.new(0, 0.5)
-		btn.BackgroundColor3 = ThemeBg
-		btn.Text = "F"
-		btn.Font = Enum.Font.GothamBold
-		btn.TextSize = 18
-		btn.TextColor3 = ThemeAccent
-		btn.AutoButtonColor = false
-		btn.Parent = sg
-		Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 11)
-		local st = Instance.new("UIStroke")
-		st.Color = ThemeAccent
-		st.Thickness = 1.5
-		st.Parent = btn
-		btn.MouseButton1Click:Connect(function()
-			local g = rawget(v28, "Gui")
-			if typeof(g) == "Instance" then
-				g.Enabled = not g.Enabled
-			end
-		end)
-		local drag, d0, p0
-		local UIS = game:GetService("UserInputService")
-		btn.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-				drag = true
-				d0 = input.Position
-				p0 = btn.Position
-			end
-		end)
-		UIS.InputEnded:Connect(function()
-			drag = false
-		end)
-		UIS.InputChanged:Connect(function(input)
-			if drag and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-				local d = input.Position - d0
-				btn.Position = UDim2.new(p0.X.Scale, p0.X.Offset + d.X, p0.Y.Scale, p0.Y.Offset + d.Y)
-			end
-		end)
-
-		-- re-assert donator after UI exists
-		pcall(function()
-			flag6:SetDonator(true)
-		end)
-	end)
 
 	flag = true
 end
