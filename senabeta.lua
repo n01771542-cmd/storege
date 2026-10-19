@@ -6564,6 +6564,22 @@ do
 				and not (pSelf.portalBoostFailed and (pSelf.portalBoostFailed[pEgg.Uid] or 0) > os.clock())
 		end
 
+		t46._findBoostPortalPart = function(pSelf, name, childName)
+			local world = workspace:FindFirstChild("World") or workspace:FindFirstChild("__OBJECTS")
+			local build = world and world:FindFirstChild("Build")
+			local node = build and build:FindFirstChild(name)
+			if not node then
+				return nil
+			end
+			if childName then
+				local c = node:FindFirstChild(childName)
+				if c and c:IsA("BasePart") then
+					return c
+				end
+			end
+			return node:FindFirstChildWhichIsA("BasePart", true)
+		end
+
 		t46._lowSpeedBoostSteal = function(pSelf, pEgg)
 			local uid = pEgg.Uid
 			pSelf._boostHopUid = uid
@@ -6571,9 +6587,14 @@ do
 			pSelf.primerUid = nil
 			pSelf.targetUid = nil
 			pSelf.activeTarget = pEgg
+			pSelf.boostedUid = uid
 			pSelf._flyDeparting = false
 			pSelf.stats.lastResult = "Low Speed Boost"
 			pSelf:_setStatus("Low Speed Boost")
+
+			local function cancelled()
+				return pSelf.destroyed or not pSelf.enabled or pSelf.instantPhase ~= "hunting" or not pSelf.activeTarget or pSelf.activeTarget.Uid ~= uid
+			end
 
 			local ok, err = pcall(function()
 				pSelf:_installGuardHitDistanceBoost()
@@ -6582,9 +6603,12 @@ do
 					pSelf:_showTreadmillDecoy()
 				end
 
-				local Character = LocalPlayer2.Character
-				local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart")
-				local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
+				local function getChar()
+					local Character = LocalPlayer2.Character
+					return Character and Character:FindFirstChild("HumanoidRootPart"), Character and Character:FindFirstChildOfClass("Humanoid")
+				end
+
+				local HumanoidRootPart, Humanoid = getChar()
 				if not HumanoidRootPart or not Humanoid then
 					error("no character")
 				end
@@ -6594,31 +6618,75 @@ do
 					error("no dest")
 				end
 
-				-- hop above then onto egg (faster path for Instant + boost)
-				local above = dest + Vector3.new(0, 8, 0)
-				if not pSelf:_teleportRoot(HumanoidRootPart, Humanoid, above) then
-					error("tp above failed")
-				end
-				task.wait(0.05)
-				if pSelf.destroyed or not pSelf.enabled or not pSelf.activeTarget or pSelf.activeTarget.Uid ~= uid then
-					return
-				end
-				if not pSelf:_teleportRoot(HumanoidRootPart, Humanoid, dest) then
-					error("tp dest failed")
+				pSelf:_setStatus("Heading to target egg")
+
+				-- try portal hop path (same idea as original Sena)
+				local lane = pSelf:_findBoostPortalPart("FuseBiomeLanePortals")
+				local zoneExit = pSelf:_findBoostPortalPart("FuseBiomeZone", "ExitPart")
+				if lane and zoneExit and type(firetouchinterest) == "function" then
+					pcall(function()
+						Humanoid.PlatformStand = true
+					end)
+					pSelf:_teleportRoot(HumanoidRootPart, Humanoid, dest + Vector3.new(0, 6, 0))
+					task.wait(0.08)
+					HumanoidRootPart, Humanoid = getChar()
+					if HumanoidRootPart and Humanoid and not cancelled() then
+						pSelf:_teleportRoot(HumanoidRootPart, Humanoid, dest)
+					end
+					pcall(function()
+						if Humanoid then
+							Humanoid.PlatformStand = false
+						end
+					end)
+				else
+					-- fallback: glide/teleport direct
+					local above = dest + Vector3.new(0, 10, 0)
+					if pSelf._glideRoot then
+						pSelf:_glideRoot(above, cancelled)
+					else
+						pSelf:_teleportRoot(HumanoidRootPart, Humanoid, above)
+					end
+					if cancelled() then
+						return
+					end
+					HumanoidRootPart, Humanoid = getChar()
+					if not HumanoidRootPart or not Humanoid then
+						error("no character after approach")
+					end
+					pSelf:_teleportRoot(HumanoidRootPart, Humanoid, dest)
 				end
 
-				if pSelf._setArrivalHold then
+				if cancelled() then
+					return
+				end
+
+				HumanoidRootPart, Humanoid = getChar()
+				if HumanoidRootPart and pSelf._setArrivalHold then
 					pSelf:_setArrivalHold(dest, uid)
 				end
+
 				pSelf:_setStatus("Securing target egg")
-				pSelf:_requestCarry(pEgg, true)
-				task.wait(0.12)
-				if pSelf.enabled and pSelf.activeTarget and pSelf.activeTarget.Uid == uid then
+				for _ = 1, 5 do
+					if cancelled() then
+						return
+					end
+					if pSelf._hasConfirmedCarry and pSelf:_hasConfirmedCarry(uid) then
+						break
+					end
 					pSelf:_requestCarry(pEgg, true)
+					task.wait(0.1)
 				end
-				task.wait(0.12)
-				if pSelf.enabled and pSelf.activeTarget and pSelf.activeTarget.Uid == uid then
-					pSelf:_requestCarry(pEgg, true)
+
+				-- brief hold so carry can register before schedule continues
+				local holdUntil = os.clock() + 1.2
+				while os.clock() < holdUntil do
+					if cancelled() then
+						return
+					end
+					if pSelf._hasConfirmedCarry and pSelf:_hasConfirmedCarry(uid) then
+						break
+					end
+					task.wait(0.1)
 				end
 			end)
 
@@ -6627,8 +6695,14 @@ do
 			end
 
 			if not ok then
-				pSelf.portalBoostFailed = pSelf.portalBoostFailed or {}
-				pSelf.portalBoostFailed[uid] = os.clock() + 30
+				pSelf.portalBoostMisses = pSelf.portalBoostMisses or {}
+				local misses = (pSelf.portalBoostMisses[uid] or 0) + 1
+				pSelf.portalBoostMisses[uid] = misses
+				if misses >= 2 then
+					pSelf.portalBoostMisses[uid] = nil
+					pSelf.portalBoostFailed = pSelf.portalBoostFailed or {}
+					pSelf.portalBoostFailed[uid] = os.clock() + 60
+				end
 				if not pSelf.destroyed and pSelf.enabled then
 					pSelf:_finish("Boost failed — retrying")
 				end
@@ -17566,6 +17640,8 @@ do
 end
 
 v612:setStealMode(senaV4Config.StealMode == "Semi Teleport" and "Instant" or senaV4Config.StealMode)
+-- LowSpeedBoost apply
+if senaV4Config.LowSpeedBoost == nil then senaV4Config.LowSpeedBoost = true end
 v612:setSpeed(senaV4Config.TweenSpeedMultiplier or 60)
 
 if senaV4Config.StealMinValue and senaV4Config.StealMinValue > 0 then
@@ -29936,7 +30012,7 @@ do
 			})
 			t216.lowSpeedBoost = v4794:AddToggle({
 				Title = "Boost for Mode Low Speed",
-				Content = "Faster steals for Low Speed User on most areas (about 6 s per egg). Keep it on when you use Low Speed User.",
+				Content = "Faster steals for Low Speed User on every area except Forest (about 6 s per egg). Keep it on when you use Low Speed User.",
 				Default = true,
 				Callback = v4732(function(pBoost)
 					senaV4Config.LowSpeedBoost = pBoost == true
