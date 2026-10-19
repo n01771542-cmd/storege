@@ -5896,20 +5896,12 @@ local v8 = (function()
 
 	index._resolveSettleSeconds = function(arg, arg2)
 		local n58 = math.clamp(tonumber(senaV4Config.StealHoldSeconds) or 5, 1, 10)
-		-- Instant: slightly tighter base hold so less "stuck securing"
-		if arg.config and arg.config.stealMode == "Instant" then
-			n58 = math.clamp(n58, 1, 6)
-		end
 		local flag5 = arg.settleBonus and type(arg2) == "table" and arg.settleBonus[arg2.Uid]
 		local seconds = flag5 and flag5.untilAt > os.clock() and flag5.seconds or 0
 		local v8 = fn3()
 		seconds = if v8 > 0 then if v8 < 12 then seconds + 2 else seconds else seconds
 		local v9 = if genv.__SenaV4NetPing() > 300 then seconds + 1 else seconds
-		local total = fn87(type(arg2) == "table" and arg2.AreaId, n58) + v9
-		if arg.config and arg.config.stealMode == "Instant" then
-			total = math.clamp(total, 1, 7)
-		end
-		return total
+		return fn87(type(arg2) == "table" and arg2.AreaId, n58) + v9
 	end
 
 	index._startPrimerTargetHunt = function(arg)
@@ -6107,18 +6099,14 @@ local v8 = (function()
 		end
 		arg:_setArrivalHold(arg3, arg2.Uid)
 		arg:_setStatus("Securing target egg")
-		-- Instant: burst carry so lag/desync less often drops the grab
 		arg:_requestCarry(arg2, true)
-		for _ = 1, 3 do
-			if arg4() then
-				return
+		task.delay(0.1, function()
+			if not arg.destroyed and arg.enabled then
+				pcall(function()
+					arg:_requestCarry(arg2, true)
+				end)
 			end
-			task.wait(0.08)
-			if arg:_hasConfirmedCarry and arg:_hasConfirmedCarry(arg2.Uid) then
-				return
-			end
-			arg:_requestCarry(arg2, true)
-		end
+		end)
 	end
 
 	index._wallOpen = function(arg)
@@ -32955,22 +32943,6 @@ local function fn66()
 		if typeof(g) == "Instance" then
 			g.Enabled = false
 		end
-		for _, ch in ipairs(game:GetService("CoreGui"):GetChildren()) do
-			if ch.Name == "ToggleUIButton" or ch.Name == "Chloeex" then
-				pcall(function()
-					ch.Enabled = false
-				end)
-			end
-		end
-		if gethui then
-			for _, ch in ipairs(gethui():GetChildren()) do
-				if ch.Name == "ToggleUIButton" or ch.Name == "Chloeex" then
-					pcall(function()
-						ch.Enabled = false
-					end)
-				end
-			end
-		end
 	end)
 	fn155(v28)
 	local tbl24 = {}
@@ -34629,40 +34601,9 @@ local function fn66()
 	end
 
 
-	-- ============================================================
-	-- LEON4951 standalone UI 380x480 — Windows + Steal only
-	-- Real backend (senaPanels / fn78 / senaV4Config) stays.
-	-- ============================================================
 	pcall(function()
-		local gui = rawget(v28, "Gui")
-		if typeof(gui) == "Instance" then
-			gui.Enabled = false
-		end
-		for _, parent in ipairs({game:GetService("CoreGui")}) do
-			for _, ch in ipairs(parent:GetChildren()) do
-				if ch.Name == "ToggleUIButton" or ch.Name == "Chloeex" then
-					pcall(function()
-						ch.Enabled = false
-					end)
-				end
-			end
-		end
-		pcall(function()
-			if gethui then
-				for _, ch in ipairs(gethui():GetChildren()) do
-					if ch.Name == "ToggleUIButton" or ch.Name == "Chloeex" then
-						ch.Enabled = false
-					end
-				end
-			end
-		end)
-	end)
-
-	pcall(function()
-		local CoreGui = game:GetService("CoreGui")
-		local TweenService = game:GetService("TweenService")
-		local UserInputService = game:GetService("UserInputService")
-		local parent = CoreGui
+		local UIS = game:GetService("UserInputService")
+		local parent = game:GetService("CoreGui")
 		pcall(function()
 			if gethui then
 				parent = gethui()
@@ -34672,12 +34613,10 @@ local function fn66()
 		if old then
 			old:Destroy()
 		end
-
 		local T = {
 			Bg = Color3.fromRGB(10, 12, 18),
 			Panel = Color3.fromRGB(16, 20, 30),
 			Card = Color3.fromRGB(22, 28, 40),
-			Border = Color3.fromRGB(40, 55, 85),
 			Accent = Color3.fromRGB(0, 122, 255),
 			Gold = Color3.fromRGB(255, 185, 0),
 			Text = Color3.fromRGB(240, 244, 255),
@@ -34685,14 +34624,12 @@ local function fn66()
 			On = Color3.fromRGB(40, 180, 90),
 			Off = Color3.fromRGB(55, 60, 75),
 		}
-
-		local ScreenGui = Instance.new("ScreenGui")
-		ScreenGui.Name = "Leon4951WSHub"
-		ScreenGui.ResetOnSpawn = false
-		ScreenGui.IgnoreGuiInset = true
-		ScreenGui.DisplayOrder = 50
-		ScreenGui.Parent = parent
-
+		local sg = Instance.new("ScreenGui")
+		sg.Name = "Leon4951WSHub"
+		sg.ResetOnSpawn = false
+		sg.IgnoreGuiInset = true
+		sg.DisplayOrder = 50
+		sg.Parent = parent
 		local Main = Instance.new("Frame")
 		Main.Size = UDim2.fromOffset(450, 380)
 		Main.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -34700,57 +34637,51 @@ local function fn66()
 		Main.BackgroundColor3 = T.Bg
 		Main.BorderSizePixel = 0
 		Main.Active = true
-		Main.Parent = ScreenGui
+		Main.Parent = sg
 		Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 14)
-		local mstroke = Instance.new("UIStroke")
-		mstroke.Color = T.Accent
-		mstroke.Thickness = 1.5
-		mstroke.Parent = Main
-
+		local ms = Instance.new("UIStroke")
+		ms.Color = T.Accent
+		ms.Thickness = 1.5
+		ms.Parent = Main
 		local Header = Instance.new("Frame")
-		Header.Size = UDim2.new(1, 0, 0, 44)
+		Header.Size = UDim2.new(1, 0, 0, 40)
 		Header.BackgroundTransparency = 1
 		Header.Active = true
 		Header.Parent = Main
-
 		local Title = Instance.new("TextLabel")
 		Title.BackgroundTransparency = 1
-		Title.Position = UDim2.fromOffset(14, 0)
-		Title.Size = UDim2.new(1, -90, 1, 0)
+		Title.Position = UDim2.fromOffset(12, 0)
+		Title.Size = UDim2.new(1, -80, 1, 0)
 		Title.Font = Enum.Font.GothamBold
 		Title.TextSize = 14
 		Title.TextXAlignment = Enum.TextXAlignment.Left
 		Title.TextColor3 = T.Accent
 		Title.Text = "LEON4951  ·  Windows + Steal"
 		Title.Parent = Header
-
 		local Close = Instance.new("TextButton")
-		Close.Size = UDim2.fromOffset(30, 30)
-		Close.Position = UDim2.new(1, -38, 0.5, -15)
+		Close.Size = UDim2.fromOffset(28, 28)
+		Close.Position = UDim2.new(1, -36, 0.5, -14)
 		Close.BackgroundColor3 = T.Card
 		Close.Text = "X"
 		Close.Font = Enum.Font.GothamBold
-		Close.TextSize = 14
+		Close.TextSize = 13
 		Close.TextColor3 = T.Text
 		Close.AutoButtonColor = false
 		Close.Parent = Header
-		Instance.new("UICorner", Close).CornerRadius = UDim.new(0, 8)
-
+		Instance.new("UICorner", Close).CornerRadius = UDim.new(0, 7)
 		local TabBar = Instance.new("Frame")
-		TabBar.Size = UDim2.new(1, -24, 0, 30)
-		TabBar.Position = UDim2.fromOffset(12, 48)
+		TabBar.Size = UDim2.new(1, -24, 0, 28)
+		TabBar.Position = UDim2.fromOffset(12, 44)
 		TabBar.BackgroundTransparency = 1
 		TabBar.Parent = Main
-
 		local Body = Instance.new("Frame")
-		Body.Size = UDim2.new(1, -24, 1, -96)
-		Body.Position = UDim2.fromOffset(12, 84)
+		Body.Size = UDim2.new(1, -24, 1, -84)
+		Body.Position = UDim2.fromOffset(12, 76)
 		Body.BackgroundColor3 = T.Panel
 		Body.BorderSizePixel = 0
 		Body.ClipsDescendants = true
 		Body.Parent = Main
 		Instance.new("UICorner", Body).CornerRadius = UDim.new(0, 10)
-
 		local pages = {}
 		local function makePage(name)
 			local sc = Instance.new("ScrollingFrame")
@@ -34781,11 +34712,10 @@ local function fn66()
 		end
 		local pageWin = makePage("Windows")
 		local pageSteal = makePage("Steal")
-
-		local function makeTab(text, xscale)
+		local function makeTab(text, x)
 			local b = Instance.new("TextButton")
 			b.Size = UDim2.new(0.5, -4, 1, 0)
-			b.Position = UDim2.new(xscale, xscale > 0 and 4 or 0, 0, 0)
+			b.Position = UDim2.new(x, x > 0 and 4 or 0, 0, 0)
 			b.BackgroundColor3 = T.Card
 			b.Text = text
 			b.Font = Enum.Font.GothamBold
@@ -34793,14 +34723,14 @@ local function fn66()
 			b.TextColor3 = T.Muted
 			b.AutoButtonColor = false
 			b.Parent = TabBar
-			Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
+			Instance.new("UICorner", b).CornerRadius = UDim.new(0, 7)
 			return b
 		end
 		local tabW = makeTab("WINDOWS", 0)
 		local tabS = makeTab("STEAL", 0.5)
 		local function show(name)
-			for n, p in pairs(pages) do
-				p.Visible = n == name
+			for n, pg in pairs(pages) do
+				pg.Visible = n == name
 			end
 			tabW.BackgroundColor3 = name == "Windows" and T.Accent or T.Card
 			tabW.TextColor3 = name == "Windows" and T.Text or T.Muted
@@ -34814,7 +34744,6 @@ local function fn66()
 			show("Steal")
 		end)
 		show("Windows")
-
 		local ord = 0
 		local function nord()
 			ord = ord + 1
@@ -34822,7 +34751,7 @@ local function fn66()
 		end
 		local function sec(parent, text)
 			local l = Instance.new("TextLabel")
-			l.Size = UDim2.new(1, 0, 0, 18)
+			l.Size = UDim2.new(1, 0, 0, 16)
 			l.BackgroundTransparency = 1
 			l.Font = Enum.Font.GothamBold
 			l.TextSize = 11
@@ -34834,7 +34763,7 @@ local function fn66()
 		end
 		local function btn(parent, title, desc, cb)
 			local f = Instance.new("TextButton")
-			f.Size = UDim2.new(1, 0, 0, 40)
+			f.Size = UDim2.new(1, 0, 0, 36)
 			f.BackgroundColor3 = T.Card
 			f.Text = ""
 			f.AutoButtonColor = false
@@ -34843,8 +34772,8 @@ local function fn66()
 			Instance.new("UICorner", f).CornerRadius = UDim.new(0, 7)
 			local t = Instance.new("TextLabel")
 			t.BackgroundTransparency = 1
-			t.Position = UDim2.fromOffset(8, 3)
-			t.Size = UDim2.new(1, -16, 0, 16)
+			t.Position = UDim2.fromOffset(8, 2)
+			t.Size = UDim2.new(1, -16, 0, 14)
 			t.Font = Enum.Font.GothamBold
 			t.TextSize = 11
 			t.TextColor3 = T.Text
@@ -34853,8 +34782,8 @@ local function fn66()
 			t.Parent = f
 			local d = Instance.new("TextLabel")
 			d.BackgroundTransparency = 1
-			d.Position = UDim2.fromOffset(8, 20)
-			d.Size = UDim2.new(1, -16, 0, 14)
+			d.Position = UDim2.fromOffset(8, 18)
+			d.Size = UDim2.new(1, -16, 0, 12)
 			d.Font = Enum.Font.Gotham
 			d.TextSize = 9
 			d.TextColor3 = T.Muted
@@ -34869,15 +34798,15 @@ local function fn66()
 		local function tog(parent, title, desc, default, cb)
 			local state = default and true or false
 			local f = Instance.new("Frame")
-			f.Size = UDim2.new(1, 0, 0, 40)
+			f.Size = UDim2.new(1, 0, 0, 36)
 			f.BackgroundColor3 = T.Card
 			f.LayoutOrder = nord()
 			f.Parent = parent
 			Instance.new("UICorner", f).CornerRadius = UDim.new(0, 7)
 			local t = Instance.new("TextLabel")
 			t.BackgroundTransparency = 1
-			t.Position = UDim2.fromOffset(8, 3)
-			t.Size = UDim2.new(1, -60, 0, 16)
+			t.Position = UDim2.fromOffset(8, 2)
+			t.Size = UDim2.new(1, -56, 0, 14)
 			t.Font = Enum.Font.GothamBold
 			t.TextSize = 11
 			t.TextColor3 = T.Text
@@ -34886,8 +34815,8 @@ local function fn66()
 			t.Parent = f
 			local d = Instance.new("TextLabel")
 			d.BackgroundTransparency = 1
-			d.Position = UDim2.fromOffset(8, 20)
-			d.Size = UDim2.new(1, -60, 0, 14)
+			d.Position = UDim2.fromOffset(8, 18)
+			d.Size = UDim2.new(1, -56, 0, 12)
 			d.Font = Enum.Font.Gotham
 			d.TextSize = 9
 			d.TextColor3 = T.Muted
@@ -34896,58 +34825,24 @@ local function fn66()
 			d.Text = desc or ""
 			d.Parent = f
 			local k = Instance.new("TextButton")
-			k.Size = UDim2.fromOffset(40, 20)
-			k.Position = UDim2.new(1, -48, 0.5, -10)
+			k.Size = UDim2.fromOffset(38, 18)
+			k.Position = UDim2.new(1, -46, 0.5, -9)
 			k.BackgroundColor3 = state and T.On or T.Off
 			k.Text = ""
 			k.AutoButtonColor = false
 			k.Parent = f
 			Instance.new("UICorner", k).CornerRadius = UDim.new(1, 0)
 			local dot = Instance.new("Frame")
-			dot.Size = UDim2.fromOffset(14, 14)
-			dot.Position = state and UDim2.new(1, -17, 0.5, -7) or UDim2.new(0, 3, 0.5, -7)
+			dot.Size = UDim2.fromOffset(12, 12)
+			dot.Position = state and UDim2.new(1, -15, 0.5, -6) or UDim2.new(0, 3, 0.5, -6)
 			dot.BackgroundColor3 = T.Text
 			dot.Parent = k
 			Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
 			k.MouseButton1Click:Connect(function()
 				state = not state
 				k.BackgroundColor3 = state and T.On or T.Off
-				dot.Position = state and UDim2.new(1, -17, 0.5, -7) or UDim2.new(0, 3, 0.5, -7)
+				dot.Position = state and UDim2.new(1, -15, 0.5, -6) or UDim2.new(0, 3, 0.5, -6)
 				pcall(cb, state)
-			end)
-		end
-		local function inp(parent, title, ph, cb)
-			local f = Instance.new("Frame")
-			f.Size = UDim2.new(1, 0, 0, 46)
-			f.BackgroundColor3 = T.Card
-			f.LayoutOrder = nord()
-			f.Parent = parent
-			Instance.new("UICorner", f).CornerRadius = UDim.new(0, 7)
-			local t = Instance.new("TextLabel")
-			t.BackgroundTransparency = 1
-			t.Position = UDim2.fromOffset(8, 2)
-			t.Size = UDim2.new(1, -16, 0, 14)
-			t.Font = Enum.Font.GothamBold
-			t.TextSize = 10
-			t.TextColor3 = T.Text
-			t.TextXAlignment = Enum.TextXAlignment.Left
-			t.Text = title
-			t.Parent = f
-			local box = Instance.new("TextBox")
-			box.Size = UDim2.new(1, -16, 0, 22)
-			box.Position = UDim2.fromOffset(8, 18)
-			box.BackgroundColor3 = T.Panel
-			box.PlaceholderText = ph or ""
-			box.Text = ""
-			box.Font = Enum.Font.Gotham
-			box.TextSize = 11
-			box.TextColor3 = T.Text
-			box.PlaceholderColor3 = T.Muted
-			box.ClearTextOnFocus = false
-			box.Parent = f
-			Instance.new("UICorner", box).CornerRadius = UDim.new(0, 5)
-			box.FocusLost:Connect(function()
-				pcall(cb, box.Text)
 			end)
 		end
 		local function drop(parent, title, opts, def, cb)
@@ -34958,7 +34853,7 @@ local function fn66()
 				end
 			end
 			local f = Instance.new("Frame")
-			f.Size = UDim2.new(1, 0, 0, 40)
+			f.Size = UDim2.new(1, 0, 0, 36)
 			f.BackgroundColor3 = T.Card
 			f.LayoutOrder = nord()
 			f.Parent = parent
@@ -34966,7 +34861,7 @@ local function fn66()
 			local t = Instance.new("TextLabel")
 			t.BackgroundTransparency = 1
 			t.Position = UDim2.fromOffset(8, 2)
-			t.Size = UDim2.new(1, -16, 0, 14)
+			t.Size = UDim2.new(1, -16, 0, 12)
 			t.Font = Enum.Font.GothamBold
 			t.TextSize = 10
 			t.TextColor3 = T.Text
@@ -34974,8 +34869,8 @@ local function fn66()
 			t.Text = title
 			t.Parent = f
 			local b = Instance.new("TextButton")
-			b.Size = UDim2.new(1, -16, 0, 18)
-			b.Position = UDim2.fromOffset(8, 18)
+			b.Size = UDim2.new(1, -16, 0, 16)
+			b.Position = UDim2.fromOffset(8, 16)
 			b.BackgroundColor3 = T.Panel
 			b.Font = Enum.Font.Gotham
 			b.TextSize = 11
@@ -34993,7 +34888,7 @@ local function fn66()
 		local function slid(parent, title, mn, mx, def, cb)
 			local val = def
 			local f = Instance.new("Frame")
-			f.Size = UDim2.new(1, 0, 0, 44)
+			f.Size = UDim2.new(1, 0, 0, 40)
 			f.BackgroundColor3 = T.Card
 			f.LayoutOrder = nord()
 			f.Parent = parent
@@ -35001,7 +34896,7 @@ local function fn66()
 			local t = Instance.new("TextLabel")
 			t.BackgroundTransparency = 1
 			t.Position = UDim2.fromOffset(8, 2)
-			t.Size = UDim2.new(1, -50, 0, 14)
+			t.Size = UDim2.new(1, -48, 0, 12)
 			t.Font = Enum.Font.GothamBold
 			t.TextSize = 10
 			t.TextColor3 = T.Text
@@ -35010,8 +34905,8 @@ local function fn66()
 			t.Parent = f
 			local vt = Instance.new("TextLabel")
 			vt.BackgroundTransparency = 1
-			vt.Position = UDim2.new(1, -44, 0, 2)
-			vt.Size = UDim2.fromOffset(36, 14)
+			vt.Position = UDim2.new(1, -40, 0, 2)
+			vt.Size = UDim2.fromOffset(32, 12)
 			vt.Font = Enum.Font.GothamBold
 			vt.TextSize = 10
 			vt.TextColor3 = T.Accent
@@ -35020,7 +34915,7 @@ local function fn66()
 			vt.Parent = f
 			local track = Instance.new("Frame")
 			track.Size = UDim2.new(1, -16, 0, 6)
-			track.Position = UDim2.fromOffset(8, 28)
+			track.Position = UDim2.fromOffset(8, 24)
 			track.BackgroundColor3 = T.Panel
 			track.BorderSizePixel = 0
 			track.Parent = f
@@ -35045,71 +34940,103 @@ local function fn66()
 					setX(input.Position.X)
 				end
 			end)
-			UserInputService.InputEnded:Connect(function()
+			UIS.InputEnded:Connect(function()
 				drag = false
 			end)
-			UserInputService.InputChanged:Connect(function(input)
+			UIS.InputChanged:Connect(function(input)
 				if drag and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 					setX(input.Position.X)
 				end
 			end)
 		end
+		local function inp(parent, title, ph, cb)
+			local f = Instance.new("Frame")
+			f.Size = UDim2.new(1, 0, 0, 42)
+			f.BackgroundColor3 = T.Card
+			f.LayoutOrder = nord()
+			f.Parent = parent
+			Instance.new("UICorner", f).CornerRadius = UDim.new(0, 7)
+			local t = Instance.new("TextLabel")
+			t.BackgroundTransparency = 1
+			t.Position = UDim2.fromOffset(8, 2)
+			t.Size = UDim2.new(1, -16, 0, 12)
+			t.Font = Enum.Font.GothamBold
+			t.TextSize = 10
+			t.TextColor3 = T.Text
+			t.TextXAlignment = Enum.TextXAlignment.Left
+			t.Text = title
+			t.Parent = f
+			local box = Instance.new("TextBox")
+			box.Size = UDim2.new(1, -16, 0, 20)
+			box.Position = UDim2.fromOffset(8, 16)
+			box.BackgroundColor3 = T.Panel
+			box.PlaceholderText = ph or ""
+			box.Text = ""
+			box.Font = Enum.Font.Gotham
+			box.TextSize = 11
+			box.TextColor3 = T.Text
+			box.PlaceholderColor3 = T.Muted
+			box.ClearTextOnFocus = false
+			box.Parent = f
+			Instance.new("UICorner", box).CornerRadius = UDim.new(0, 5)
+			box.FocusLost:Connect(function()
+				pcall(cb, box.Text)
+			end)
+		end
 
-		-- WINDOWS (real senaPanels)
 		ord = 0
 		sec(pageWin, "PANELS")
-		btn(pageWin, "Egg Logs", "Live feed of every egg that spawns", function()
+		btn(pageWin, "Egg Logs", "Live egg spawn feed", function()
 			senaPanels.openLogs()
 		end)
-		btn(pageWin, "Egg Board", "Sortable list of eggs up for grabs", function()
+		btn(pageWin, "Egg Board", "Eggs up for grabs", function()
 			senaPanels.openBoard()
 		end)
-		btn(pageWin, "Inventory & Base", "Pets, eggs and plot status", function()
+		btn(pageWin, "Inventory & Base", "Pets eggs plot", function()
 			senaPanels.openInventory()
 		end)
-		btn(pageWin, "Egg Checker", "Pick field eggs then send to steal queue", function()
+		btn(pageWin, "Egg Checker", "Pick eggs to steal queue", function()
 			senaPanels.openChecker()
 		end)
-		btn(pageWin, "Egg Data & History", "Drop-table values + session history", function()
+		btn(pageWin, "Egg Data & History", "Drop tables + history", function()
 			senaPanels.openAnalyst()
 		end)
-		btn(pageWin, "Farm Stats", "Money, steals, plot, scramble event", function()
+		btn(pageWin, "Farm Stats", "Money steals plot", function()
 			senaPanels.openStats()
 		end)
-		btn(pageWin, "Open All Windows", "Open every panel at once", function()
+		btn(pageWin, "Open All Windows", "Open all panels", function()
 			senaPanels.openAll()
 		end)
-		btn(pageWin, "Close All Windows", "Hide every panel", function()
+		btn(pageWin, "Close All Windows", "Close all panels", function()
 			senaPanels.closeAll()
 		end)
 
-		-- STEAL (real callbacks)
 		ord = 0
 		sec(pageSteal, "AUTO STEAL")
-		tog(pageSteal, "Auto Steal", "Steal matching eggs and bring home", false, function(v)
+		tog(pageSteal, "Auto Steal", "Steal matching eggs", false, function(v)
 			fn78(v)
 		end)
-		btn(pageSteal, "Open Hop UI", "Rare egg server hop panel", function()
+		btn(pageSteal, "Open Hop UI", "Rare egg hop", function()
 			if tbl13 and tbl13.hopHunt and tbl13.hopHunt.open then
 				tbl13.hopHunt.open()
 			end
 		end)
-		tog(pageSteal, "Help Friend", "Assist friend steals", false, function(v)
+		tog(pageSteal, "Help Friend", "Help friend steals", false, function(v)
 			senaV4Config.HelpFriend = v
 		end)
-		tog(pageSteal, "Aura Bat", "Aura / bat assist", false, function(v)
+		tog(pageSteal, "Aura Bat", "Aura assist", false, function(v)
 			if fn80 then
 				fn80(v)
 			end
 		end)
-		drop(pageSteal, "Steal Mode", {"Normal", "Instant", "Low Speed User", "High Speed", "High Speed Fly"}, "Normal", function(v)
+		drop(pageSteal, "Steal Mode", {"Normal", "Instant", "Low Speed User", "High Speed", "High Speed Fly"}, "Instant", function(v)
 			if fn89 then
 				fn89(v)
 			else
 				senaV4Config.StealMode = v
 			end
 		end)
-		tog(pageSteal, "Low Speed User", "Low speed steal path", false, function(v)
+		tog(pageSteal, "Low Speed User", "Low speed path", false, function(v)
 			if fn79 then
 				fn79(v)
 			end
@@ -35117,16 +35044,13 @@ local function fn66()
 		slid(pageSteal, "Low Speed Multiplier", 1, 10, 3, function(v)
 			if fn90 then
 				fn90(v)
-			else
-				senaV4Config.LowSpeedMultiplier = v
 			end
 		end)
-		tog(pageSteal, "Boost for Mode Low Speed", "Faster low-speed steals", true, function(v)
+		tog(pageSteal, "Boost Low Speed", "Faster low-speed steals", true, function(v)
 			senaV4Config.LowSpeedBoost = v
 		end)
-
 		sec(pageSteal, "EGG FILTER")
-		inp(pageSteal, "Filter By Egg Name", "e.g. Dragon", function(t)
+		inp(pageSteal, "Filter By Egg Name", "name", function(t)
 			if fn91 then
 				fn91("names", "name", t)
 			end
@@ -35161,19 +35085,18 @@ local function fn66()
 				fn95(v)
 			end
 		end)
-		tog(pageSteal, "Auto Index", "Auto index eggs", false, function(v)
+		tog(pageSteal, "Auto Index", "Auto index", false, function(v)
 			if fn149 then
 				fn149(v)
 			end
 		end)
-
 		sec(pageSteal, "EGG ESP")
-		tog(pageSteal, "Egg ESP", "Highlight eggs on field", false, function(v)
+		tog(pageSteal, "Egg ESP", "Highlight eggs", false, function(v)
 			if fn96 then
 				fn96(v)
 			end
 		end)
-		tog(pageSteal, "ESP Details", "Show name/value details", false, function(v)
+		tog(pageSteal, "ESP Details", "Name/value details", false, function(v)
 			if fn97 then
 				fn97(v)
 			end
@@ -35188,24 +35111,23 @@ local function fn66()
 				tbl10.applyEspMinValue(t)
 			end
 		end)
-		tog(pageSteal, "Backpack Value/s", "Show backpack rates", false, function(v)
+		tog(pageSteal, "Backpack Value/s", "Backpack rates", false, function(v)
 			if fn99 then
 				fn99(v)
 			end
 		end)
-
-		sec(pageSteal, "STEAL WEBHOOK")
-		tog(pageSteal, "Steal Webhook", "Enable webhook alerts", false, function(v)
+		sec(pageSteal, "WEBHOOK")
+		tog(pageSteal, "Steal Webhook", "Enable alerts", false, function(v)
 			if fn150 then
 				fn150(v)
 			end
 		end)
-		inp(pageSteal, "Webhook URL", "discord webhook url", function(t)
+		inp(pageSteal, "Webhook URL", "discord url", function(t)
 			if fn151 then
 				fn151(t)
 			end
 		end)
-		tog(pageSteal, "Disconnect Alert", "Alert on disconnect", false, function(v)
+		tog(pageSteal, "Disconnect Alert", "On disconnect", false, function(v)
 			senaV4Config.WebhookDisconnect = v
 		end)
 		drop(pageSteal, "Notify Rarities", {"None", "Secret", "Eternal", "Divine"}, "Secret", function(v)
@@ -35213,22 +35135,13 @@ local function fn66()
 				fn152({v})
 			end
 		end)
-		inp(pageSteal, "Notify Minimum Value", "e.g. 1m", function(t)
+		inp(pageSteal, "Notify Min Value", "e.g. 1m", function(t)
 			if fn153 then
 				fn153(t)
 			end
 		end)
-		btn(pageSteal, "Test Webhook", "Send test embed", function()
-			-- same path as original test button if available
-			if tbl24 and tbl24.webhookUrl then
-				pcall(function()
-					fn150(true)
-				end)
-			end
-		end)
-
 		sec(pageSteal, "STEAL FROM PLAYERS")
-		tog(pageSteal, "Auto Steal From Players", "Steal eggs carried by players", false, function(v)
+		tog(pageSteal, "Auto Steal From Players", "Steal carried eggs", false, function(v)
 			if fn145 then
 				fn145(v)
 			end
@@ -35243,13 +35156,21 @@ local function fn66()
 				fn148(t)
 			end
 		end)
-		btn(pageSteal, "Clear Steal History", "Wipe player steal history", function()
+		btn(pageSteal, "Clear Steal History", "Wipe history", function()
 			if senaV4PlayerSteal and senaV4PlayerSteal.clearHistory then
 				senaV4PlayerSteal:clearHistory()
 			end
 		end)
 
-		-- drag main
+		-- hide stock gui again
+		pcall(function()
+			local g = rawget(v28, "Gui")
+			if typeof(g) == "Instance" then
+				g.Enabled = false
+			end
+		end)
+
+		-- drag
 		do
 			local dragging, d0, p0
 			Header.InputBegan:Connect(function(input)
@@ -35259,18 +35180,16 @@ local function fn66()
 					p0 = Main.Position
 				end
 			end)
-			UserInputService.InputEnded:Connect(function()
+			UIS.InputEnded:Connect(function()
 				dragging = false
 			end)
-			UserInputService.InputChanged:Connect(function(input)
+			UIS.InputChanged:Connect(function(input)
 				if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 					local d = input.Position - d0
 					Main.Position = UDim2.new(p0.X.Scale, p0.X.Offset + d.X, p0.Y.Scale, p0.Y.Offset + d.Y)
 				end
 			end)
 		end
-
-		-- float F
 		local Float = Instance.new("TextButton")
 		Float.Size = UDim2.fromOffset(40, 40)
 		Float.Position = UDim2.new(0, 16, 0.45, 0)
@@ -35281,7 +35200,7 @@ local function fn66()
 		Float.TextColor3 = T.Accent
 		Float.Visible = false
 		Float.AutoButtonColor = false
-		Float.Parent = ScreenGui
+		Float.Parent = sg
 		Instance.new("UICorner", Float).CornerRadius = UDim.new(0, 10)
 		local fs = Instance.new("UIStroke")
 		fs.Color = T.Accent
@@ -35295,25 +35214,6 @@ local function fn66()
 			Main.Visible = true
 			Float.Visible = false
 		end)
-		do
-			local dragging, d0, p0
-			Float.InputBegan:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-					dragging = true
-					d0 = input.Position
-					p0 = Float.Position
-				end
-			end)
-			UserInputService.InputEnded:Connect(function()
-				dragging = false
-			end)
-			UserInputService.InputChanged:Connect(function(input)
-				if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-					local d = input.Position - d0
-					Float.Position = UDim2.new(p0.X.Scale, p0.X.Offset + d.X, p0.Y.Scale, p0.Y.Offset + d.Y)
-				end
-			end)
-		end
 	end)
 
 	flag = true
