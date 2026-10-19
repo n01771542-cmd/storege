@@ -5896,12 +5896,20 @@ local v8 = (function()
 
 	index._resolveSettleSeconds = function(arg, arg2)
 		local n58 = math.clamp(tonumber(senaV4Config.StealHoldSeconds) or 5, 1, 10)
+		-- Instant: slightly tighter base hold so less "stuck securing"
+		if arg.config and arg.config.stealMode == "Instant" then
+			n58 = math.clamp(n58, 1, 6)
+		end
 		local flag5 = arg.settleBonus and type(arg2) == "table" and arg.settleBonus[arg2.Uid]
 		local seconds = flag5 and flag5.untilAt > os.clock() and flag5.seconds or 0
 		local v8 = fn3()
 		seconds = if v8 > 0 then if v8 < 12 then seconds + 2 else seconds else seconds
 		local v9 = if genv.__SenaV4NetPing() > 300 then seconds + 1 else seconds
-		return fn87(type(arg2) == "table" and arg2.AreaId, n58) + v9
+		local total = fn87(type(arg2) == "table" and arg2.AreaId, n58) + v9
+		if arg.config and arg.config.stealMode == "Instant" then
+			total = math.clamp(total, 1, 7)
+		end
+		return total
 	end
 
 	index._startPrimerTargetHunt = function(arg)
@@ -6099,7 +6107,18 @@ local v8 = (function()
 		end
 		arg:_setArrivalHold(arg3, arg2.Uid)
 		arg:_setStatus("Securing target egg")
+		-- Instant: burst carry so lag/desync less often drops the grab
 		arg:_requestCarry(arg2, true)
+		for _ = 1, 3 do
+			if arg4() then
+				return
+			end
+			task.wait(0.08)
+			if arg:_hasConfirmedCarry and arg:_hasConfirmedCarry(arg2.Uid) then
+				return
+			end
+			arg:_requestCarry(arg2, true)
+		end
 	end
 
 	index._wallOpen = function(arg)
@@ -32931,6 +32950,28 @@ local function fn66()
 	v27()
 	local flag13 = type(flag6.ApplyIcon) == "function"
 	local v28 = flag6:Window({Title = "Sena 6.2 |", Footer = "Steal An Egg", Folder = "SenaSAEv4", Version = 1, Color = Color3.fromRGB(232, 232, 238), Image = "https://senahub.xyz/api/visual/sena_bg.jpg", KeyGate = false})
+	pcall(function()
+		local g = rawget(v28, "Gui")
+		if typeof(g) == "Instance" then
+			g.Enabled = false
+		end
+		for _, ch in ipairs(game:GetService("CoreGui"):GetChildren()) do
+			if ch.Name == "ToggleUIButton" or ch.Name == "Chloeex" then
+				pcall(function()
+					ch.Enabled = false
+				end)
+			end
+		end
+		if gethui then
+			for _, ch in ipairs(gethui():GetChildren()) do
+				if ch.Name == "ToggleUIButton" or ch.Name == "Chloeex" then
+					pcall(function()
+						ch.Enabled = false
+					end)
+				end
+			end
+		end
+	end)
 	fn155(v28)
 	local tbl24 = {}
 	local tbl25 = {"Respawn Point"}
@@ -34653,7 +34694,7 @@ local function fn66()
 		ScreenGui.Parent = parent
 
 		local Main = Instance.new("Frame")
-		Main.Size = UDim2.fromOffset(380, 480)
+		Main.Size = UDim2.fromOffset(450, 380)
 		Main.AnchorPoint = Vector2.new(0.5, 0.5)
 		Main.Position = UDim2.fromScale(0.5, 0.5)
 		Main.BackgroundColor3 = T.Bg
