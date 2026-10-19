@@ -837,6 +837,7 @@ end
 local senaV4Config = {
 	AutoSteal = false,
 	HelpFriend = false,
+	LowSpeedBoost = true,
 	ScrambleTradeInTrade = false,
 	ScrambleTradeInReroll = false,
 	ScrambleTradeInBanners = {},
@@ -6539,6 +6540,101 @@ do
 
 			return false
 		end
+
+		local boostAreas = {
+			["Titan Temple"] = true,
+			["Light Dark"] = true,
+			["Enchanted Forest"] = true,
+			["Cherry Blossom"] = true,
+			Cosmic = true,
+			Prehistoric = true,
+			["Abyss Ocean"] = true,
+			Volcano = true,
+			Snow = true,
+			Jungle = true,
+			Desert = true,
+			Lake = true,
+		}
+
+		t46._usesLowSpeedBoost = function(pSelf, pEgg)
+			return senaV4Config.LowSpeedBoost == true
+				and pSelf.config.stealMode == "Instant"
+				and type(pEgg) == "table"
+				and boostAreas[pEgg.AreaId] == true
+				and not (pSelf.portalBoostFailed and (pSelf.portalBoostFailed[pEgg.Uid] or 0) > os.clock())
+		end
+
+		t46._lowSpeedBoostSteal = function(pSelf, pEgg)
+			local uid = pEgg.Uid
+			pSelf._boostHopUid = uid
+			pSelf.instantPhase = "hunting"
+			pSelf.primerUid = nil
+			pSelf.targetUid = nil
+			pSelf.activeTarget = pEgg
+			pSelf._flyDeparting = false
+			pSelf.stats.lastResult = "Low Speed Boost"
+			pSelf:_setStatus("Low Speed Boost")
+
+			local ok, err = pcall(function()
+				pSelf:_installGuardHitDistanceBoost()
+				pSelf:_startMovementProtection()
+				if pSelf._showTreadmillDecoy then
+					pSelf:_showTreadmillDecoy()
+				end
+
+				local Character = LocalPlayer2.Character
+				local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+				local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
+				if not HumanoidRootPart or not Humanoid then
+					error("no character")
+				end
+
+				local dest = pSelf:_resolveEggDestination(pEgg, HumanoidRootPart, Humanoid)
+				if typeof(dest) ~= "CFrame" then
+					error("no dest")
+				end
+
+				-- hop above then onto egg (faster path for Instant + boost)
+				local above = dest + Vector3.new(0, 8, 0)
+				if not pSelf:_teleportRoot(HumanoidRootPart, Humanoid, above) then
+					error("tp above failed")
+				end
+				task.wait(0.05)
+				if pSelf.destroyed or not pSelf.enabled or not pSelf.activeTarget or pSelf.activeTarget.Uid ~= uid then
+					return
+				end
+				if not pSelf:_teleportRoot(HumanoidRootPart, Humanoid, dest) then
+					error("tp dest failed")
+				end
+
+				if pSelf._setArrivalHold then
+					pSelf:_setArrivalHold(dest, uid)
+				end
+				pSelf:_setStatus("Securing target egg")
+				pSelf:_requestCarry(pEgg, true)
+				task.wait(0.12)
+				if pSelf.enabled and pSelf.activeTarget and pSelf.activeTarget.Uid == uid then
+					pSelf:_requestCarry(pEgg, true)
+				end
+				task.wait(0.12)
+				if pSelf.enabled and pSelf.activeTarget and pSelf.activeTarget.Uid == uid then
+					pSelf:_requestCarry(pEgg, true)
+				end
+			end)
+
+			if pSelf._boostHopUid == uid then
+				pSelf._boostHopUid = nil
+			end
+
+			if not ok then
+				pSelf.portalBoostFailed = pSelf.portalBoostFailed or {}
+				pSelf.portalBoostFailed[uid] = os.clock() + 30
+				if not pSelf.destroyed and pSelf.enabled then
+					pSelf:_finish("Boost failed — retrying")
+				end
+			end
+		end
+
 		t46._cleanupInstantSteal = function(p252)
 			p252.instantPhase = nil
 			p252.primerUid = nil
@@ -11535,6 +11631,16 @@ do
 			end
 
 			p460.safeStarting = false
+
+			if p460:_usesLowSpeedBoost(v1655) then
+				p460.instantPhase = "hunting"
+				p460.primerUid = nil
+				p460.targetUid = nil
+				p460.activeTarget = v1655
+				p460._flyDeparting = false
+				task.spawn(p460._lowSpeedBoostSteal, p460, v1655)
+				return
+			end
 
 			if p460.config.stealMode == "Fly" then
 				p460.instantPhase = "priming"
@@ -29827,6 +29933,14 @@ do
 				Default = 5,
 				Increment = 1,
 				Callback = v4732(v4527)
+			})
+			t216.lowSpeedBoost = v4794:AddToggle({
+				Title = "Boost for Mode Low Speed",
+				Content = "Faster steals for Low Speed User on most areas (about 6 s per egg). Keep it on when you use Low Speed User.",
+				Default = true,
+				Callback = v4732(function(pBoost)
+					senaV4Config.LowSpeedBoost = pBoost == true
+				end)
 			})
 
 			local v4795 = v4793:AddSection("Egg Filter")
